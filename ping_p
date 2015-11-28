@@ -1,0 +1,52 @@
+#!/usr/bin/python
+from socket import *
+from conf import IP_LIST, RAGE_PORT, TIMEOUT, OUTPUT_FILE
+from datetime import datetime
+
+
+setdefaulttimeout(TIMEOUT)
+
+
+def ping(ip_add, port):
+
+    s = socket(AF_INET, SOCK_STREAM)
+
+    try:
+        s.connect((ip_add, int(port)), )
+    except timeout:
+        s.close()
+        return False
+    except Exception as e:
+        print('ERR : {0} on {1}:{2}'.format(e, ip_add, port))
+        return False
+
+    s.close()
+    return True
+
+
+if __name__ == '__main__':
+    file_name = '{0}-{1}'.format(datetime.now().strftime('%Y%m%d'), OUTPUT_FILE)
+    with open(file_name, 'w') as f:
+        f.write("range_port : {0}".format(RAGE_PORT))
+        f.write("\nstart at : {0}".format(datetime.now().strftime('%d-%m-%Y %H:%M:%S.%f')))
+        f.write("\n{0}".format('-' * 50))
+
+        for client in IP_LIST:
+            open_p = list()
+            close_p = list()
+
+            for r_port in RAGE_PORT:
+                for p in range(r_port[0], r_port[1]):
+                    res = ping(client[1], p)
+                    if res:
+                        open_p.append(p)
+                    else:
+                        close_p.append(p)
+            f.write("\n{0} - ({1}) :".format(client[0], client[1]))
+            f.write("\n   open : {0}".format(open_p))
+            f.write("\n   close : {0}".format(close_p))
+
+        f.write("\n{0}".format('-' * 50))
+        f.write("\n end at : {0}\n".format(datetime.now().strftime('%d-%m-%Y %H:%M:%S.%f')))
+
+        f.close()
